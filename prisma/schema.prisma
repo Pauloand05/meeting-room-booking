@@ -24,6 +24,6 @@ model Booking {
   roomId       String
   room         Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
-  updateAt DateTime @updateAt
+  updatedAt DateTime @updatedAt
   @@index([roomId, startsAt, endsAt])
 }

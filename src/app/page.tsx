@@ -15,18 +15,19 @@ import { getRooms } from "@/services/room.service";
 // Types
 import type { Booking, BookingFormData } from "@/types/booking";
 import type { Room } from "@/types/room";
+import type { Feedback } from "@/types/feedback";
 
 // Utils
 import { formatDateTimeLocal } from "@/utils/date";
-
 
 export default function Home() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [roomId, setRoomId] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const now = useMemo(() => new Date(), []);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [form, setForm] = useState<BookingFormData>({
     title: "",
     participants: 1,
@@ -52,7 +53,10 @@ export default function Home() {
       setBookings(bookingsData);
     } catch (error) {
       console.error(error);
-      setMessage("Erro ao carregar os dados.");
+      setFeedback({
+        type: "error",
+        message: "Erro ao carregar os dados.",
+      });
     } finally {
       setLoading(false);
     }
@@ -64,29 +68,58 @@ export default function Home() {
   }, [load]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const submit = async (
-      event: React.FormEvent<HTMLFormElement>,
-    ) => {
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setMessage("");
+
+    setFeedback(null);
+    setIsSubmitting(true);
+
+    const start = new Date(form.startsAt);
+    const end = new Date(form.endsAt);
+
+    if (end <= start) {
+          setFeedback({
+      type: "error",
+      message: "O horário de término deve ser maior que o horário de início.",
+    });
+
+    setIsSubmitting(false);
+    return;
+  }
 
     try {
       await createBooking({
         ...form,
         roomId,
-        participants: Number(form.participants),
+        participants: form.participants,
       });
 
-      setMessage("Reserva criada com sucesso.");
+      setFeedback({
+        type: "success",
+        message: "Reserva criada com sucesso.",
+      });
+
       await load();
+
+      setForm({
+        title: "",
+        participants: 1,
+        startsAt: formatDateTimeLocal(new Date(Date.now() + 3600000)),
+        endsAt: formatDateTimeLocal(new Date(Date.now() + 7200000)),
+      });
     } catch (error) {
-      setMessage(
+      setFeedback({
+      type: "error",
+      message:
         error instanceof Error
           ? error.message
           : "Não foi possível criar a reserva.",
-      );
+    });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
   const shown = roomId
     ? bookings.filter((booking) => booking.roomId === roomId)
     : bookings;
@@ -102,17 +135,18 @@ export default function Home() {
             form={form}
             setForm={setForm}
             submit={submit}
-            message={message}
+            feedback={feedback}
+            isSubmitting={isSubmitting}
           />
 
           <BookingList
-          rooms={rooms}
-          roomId={roomId}
-          setRoomId={setRoomId}
-          bookings={shown}
-          loading={loading}
-          now={now}
-        />
+            rooms={rooms}
+            roomId={roomId}
+            setRoomId={setRoomId}
+            bookings={shown}
+            loading={loading}
+            now={now}
+          />
         </div>
       </section>
     </main>
