@@ -36,6 +36,7 @@ export default function Home() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [roomId, setRoomId] = useState("");
+  const [filterRoomId, setFilterRoomId] = useState("");
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const now = useMemo(() => new Date(), []);
@@ -284,6 +285,10 @@ export default function Home() {
         setRoomId("");
       }
 
+      if (filterRoomId === room.id) {
+        setFilterRoomId("");
+      }
+
       setRoomFeedback({
         type: "success",
         message: "Sala excluída com sucesso.",
@@ -303,8 +308,8 @@ export default function Home() {
     }
   };
 
-  const shown = roomId
-    ? bookings.filter((booking) => booking.roomId === roomId)
+  const shown = filterRoomId
+    ? bookings.filter((booking) => booking.roomId === filterRoomId)
     : bookings;
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -326,8 +331,8 @@ export default function Home() {
 
           <BookingList
             rooms={rooms}
-            roomId={roomId}
-            setRoomId={setRoomId}
+            filterRoomId={filterRoomId}
+            setFilterRoomId={setFilterRoomId}
             bookings={shown}
             loading={loading}
             now={now}

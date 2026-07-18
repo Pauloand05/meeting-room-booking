@@ -5,8 +5,8 @@ import BookingCard from "./BookingCard";
 
 interface BookingListProps {
   rooms: Room[];
-  roomId: string;
-  setRoomId: (value: string) => void;
+  filterRoomId: string;
+  setFilterRoomId: (value: string) => void;
 
   bookings: Booking[];
 
@@ -21,8 +21,8 @@ interface BookingListProps {
 
 export default function BookingList({
   rooms,
-  roomId,
-  setRoomId,
+  filterRoomId,
+  setFilterRoomId,
   bookings,
   loading,
   now,
@@ -38,7 +38,10 @@ export default function BookingList({
             Ordenada por horário de início
           </p>
         </div>
-        <select value={roomId} onChange={(e) => setRoomId(e.target.value)}>
+        <select
+          value={filterRoomId}
+          onChange={(e) => setFilterRoomId(e.target.value)}
+        >
           <option value="">Todas as salas</option>
           {rooms.map((room) => (
             <option key={room.id} value={room.id}>
