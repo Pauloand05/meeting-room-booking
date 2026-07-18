@@ -9,7 +9,12 @@ import BookingList from "@/components/BookingList";
 import BookingHeader from "@/components/BookingHeader";
 
 // Services
-import { createBooking, getBookings } from "@/services/booking.service";
+import {
+  createBooking,
+  deleteBooking,
+  getBookings,
+  updateBooking,
+} from "@/services/booking.service";
 import { getRooms } from "@/services/room.service";
 
 // Types
@@ -28,6 +33,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const now = useMemo(() => new Date(), []);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [form, setForm] = useState<BookingFormData>({
     title: "",
     participants: 1,
@@ -88,18 +94,28 @@ export default function Home() {
   }
 
     try {
-      await createBooking({
+      const data = {
         ...form,
         roomId,
         participants: form.participants,
-      });
+      };
+
+      if (editingBooking) {
+        await updateBooking(editingBooking.id, data);
+      } else {
+        await createBooking(data);
+      }
 
       setFeedback({
         type: "success",
-        message: "Reserva criada com sucesso.",
+        message: editingBooking
+          ? "Reserva atualizada com sucesso."
+          : "Reserva criada com sucesso.",
       });
 
       await load();
+
+      setEditingBooking(null);
 
       setForm({
         title: "",
@@ -115,6 +131,63 @@ export default function Home() {
           ? error.message
           : "Não foi possível criar a reserva.",
     });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const startEditing = (booking: Booking) => {
+    setEditingBooking(booking);
+    setRoomId(booking.roomId);
+    setForm({
+      title: booking.title,
+      participants: booking.participants,
+      startsAt: formatDateTimeLocal(new Date(booking.startsAt)),
+      endsAt: formatDateTimeLocal(new Date(booking.endsAt)),
+    });
+    setFeedback(null);
+  };
+
+  const cancelEditing = () => {
+    setEditingBooking(null);
+    setForm({
+      title: "",
+      participants: 1,
+      startsAt: formatDateTimeLocal(new Date(Date.now() + 3600000)),
+      endsAt: formatDateTimeLocal(new Date(Date.now() + 7200000)),
+    });
+    setFeedback(null);
+  };
+
+  const removeBooking = async (booking: Booking) => {
+    if (!window.confirm(`Deseja excluir a reserva \"${booking.title}\"?`)) {
+      return;
+    }
+
+    setFeedback(null);
+    setIsSubmitting(true);
+
+    try {
+      await deleteBooking(booking.id);
+
+      if (editingBooking?.id === booking.id) {
+        cancelEditing();
+      }
+
+      setFeedback({
+        type: "success",
+        message: "Reserva excluída com sucesso.",
+      });
+
+      await load();
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível excluir a reserva.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -137,6 +210,8 @@ export default function Home() {
             submit={submit}
             feedback={feedback}
             isSubmitting={isSubmitting}
+            isEditing={Boolean(editingBooking)}
+            cancelEditing={cancelEditing}
           />
 
           <BookingList
@@ -146,6 +221,8 @@ export default function Home() {
             bookings={shown}
             loading={loading}
             now={now}
+            onEdit={startEditing}
+            onDelete={removeBooking}
           />
         </div>
       </section>

@@ -3,11 +3,17 @@ import type { Booking } from "@/types/booking";
 interface BookingCardProps {
   booking: Booking;
   now: Date;
+
+  onEdit: (booking: Booking) => void;
+
+  onDelete: (booking: Booking) => void;
 }
 
 export default function BookingCard({
   booking,
   now,
+  onEdit,
+  onDelete,
 }: BookingCardProps) {
   const start = new Date(booking.startsAt);
   const end = new Date(booking.endsAt);
@@ -42,6 +48,23 @@ export default function BookingCard({
           minute: "2-digit",
         })}
       </p>
+
+      <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          onClick={() => onEdit(booking)}
+          className="w-auto bg-slate-200 px-3 py-2 text-sm text-slate-700"
+        >
+          Editar
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(booking)}
+          className="w-auto !bg-red-600 px-3 py-2 text-sm hover:!bg-red-700"
+        >
+          Excluir
+        </button>
+      </div>
     </article>
   );
 }

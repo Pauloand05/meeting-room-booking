@@ -1,16 +1,104 @@
-# Reserva de Salas
+# Meeting Room Booking
 
-Aplicação Next.js/TypeScript para gerenciar salas e reservas. A API valida no servidor: campos obrigatórios, fim posterior ao início, capacidade e sobreposição (`início < fimExistente` e `fim > inícioExistente`). Reservas adjacentes são permitidas.
+Sistema de reserva de salas desenvolvido como desafio técnico para a Dizevolv.
 
-## Executar
+## Tecnologias
 
-1. Crie um banco PostgreSQL (Neon ou Supabase) e atualize `DATABASE_URL` em `.env`.
-2. Execute `npx prisma migrate dev --name init`.
-3. Cadastre salas por `POST /api/rooms` (ex.: `{ "name": "Sala Atlântico", "capacity": 12 }`).
-4. Execute `npm run dev`.
+- Next.js 16
+- React 19
+- TypeScript
+- Prisma ORM
+- PostgreSQL (Neon)
+- Tailwind CSS
 
-## Decisões
+## Funcionalidades
 
-- Capacidade é bloqueio rígido, para evitar uma reserva inviável.
-- Não há horário de funcionamento: o escopo não o determina.
-- Para recorrência, criaria uma entidade `BookingSeries` (regra RRULE e período) e materializaria ocorrências; a checagem continuaria por ocorrência, dentro de transação.
+- Cadastro de reservas
+- Listagem de reservas
+- Filtro por sala
+- Validação de conflitos de horário
+- Validação da capacidade da sala
+- Feedback visual para sucesso e erro
+
+## Regras de negócio
+
+- Não permite reservas sobrepostas para a mesma sala.
+- Não permite reservas com horário final menor ou igual ao inicial.
+- Não permite reservas acima da capacidade da sala.
+- As reservas são ordenadas por horário de início.
+
+## Estrutura do projeto
+
+```text
+src/
+ ├── app/
+ ├── components/
+ ├── lib/
+ ├── services/
+ ├── types/
+ └── utils/
+
+prisma/
+ ├── migrations/
+ ├── schema.prisma
+ └── seed.ts
+```
+
+## Como executar
+
+### Clone
+
+```bash
+git clone <url>
+```
+
+### Instale
+
+```bash
+npm install
+```
+
+### Configure o ambiente
+
+Crie um arquivo `.env`:
+
+```env
+DATABASE_URL="sua_string_do_neon"
+```
+
+### Gere o Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### Execute as migrations
+
+```bash
+npx prisma migrate deploy
+```
+
+### Popule o banco
+
+```bash
+npm run seed
+```
+
+### Execute
+
+```bash
+npm run dev
+```
+
+## Scripts
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run seed
+```
+
+## Autor
+
+Paulo Andrade

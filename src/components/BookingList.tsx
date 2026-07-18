@@ -13,6 +13,10 @@ interface BookingListProps {
   loading: boolean;
 
   now: Date;
+
+  onEdit: (booking: Booking) => void;
+
+  onDelete: (booking: Booking) => void;
 }
 
 export default function BookingList({
@@ -22,6 +26,8 @@ export default function BookingList({
   bookings,
   loading,
   now,
+  onEdit,
+  onDelete,
 }: BookingListProps) {
   return (
     <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -50,7 +56,13 @@ export default function BookingList({
       ) : (
         <div className="space-y-3">
           {bookings.map((booking) => (
-            <BookingCard key={booking.id} booking={booking} now={now} />
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              now={now}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ))}
         </div>
       )}

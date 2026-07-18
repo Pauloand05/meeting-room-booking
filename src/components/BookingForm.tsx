@@ -17,6 +17,10 @@ interface BookingFormProps {
   feedback: Feedback | null;
 
   isSubmitting: boolean;
+
+  isEditing: boolean;
+
+  cancelEditing: () => void;
 }
 
 export default function BookingForm({
@@ -28,6 +32,8 @@ export default function BookingForm({
   submit,
   feedback,
   isSubmitting,
+  isEditing,
+  cancelEditing,
 }: BookingFormProps) {
   const selectedRoom = rooms.find((room) => room.id === roomId);
 
@@ -103,8 +109,23 @@ export default function BookingForm({
         />
       </label>
       <button disabled={!roomId || isSubmitting}>
-        {isSubmitting ? "Criando..." : "Criar reserva"}
+        {isSubmitting
+          ? isEditing
+            ? "Salvando..."
+            : "Criando..."
+          : isEditing
+          ? "Salvar alterações"
+          : "Criar reserva"}
       </button>
+      {isEditing && (
+        <button
+          type="button"
+          onClick={cancelEditing}
+          className="mt-2 bg-slate-200 text-slate-700"
+        >
+          Cancelar edição
+        </button>
+      )}
       {feedback && (
         <div
           className={`mt-4 rounded-lg border px-4 py-3 text-sm font-medium ${
