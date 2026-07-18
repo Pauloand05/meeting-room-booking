@@ -113,6 +113,8 @@ export default function Home() {
         ...form,
         roomId,
         participants: form.participants,
+        startsAt: new Date(form.startsAt).toISOString(),
+        endsAt: new Date(form.endsAt).toISOString(),
       };
 
       if (editingBooking) {
