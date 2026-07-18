@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import BookingForm from "@/components/BookingForm";
 import BookingList from "@/components/BookingList";
 import BookingHeader from "@/components/BookingHeader";
+import RoomForm from "@/components/RoomForm";
+import RoomList from "@/components/RoomList";
 
 // Services
 import {
@@ -15,7 +17,12 @@ import {
   getBookings,
   updateBooking,
 } from "@/services/booking.service";
-import { getRooms } from "@/services/room.service";
+import {
+  createRoom,
+  deleteRoom,
+  getRooms,
+  updateRoom,
+} from "@/services/room.service";
 
 // Types
 import type { Booking, BookingFormData } from "@/types/booking";
@@ -34,6 +41,13 @@ export default function Home() {
   const now = useMemo(() => new Date(), []);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [roomFeedback, setRoomFeedback] = useState<Feedback | null>(null);
+  const [isRoomSubmitting, setIsRoomSubmitting] = useState(false);
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [roomForm, setRoomForm] = useState({
+    name: "",
+    capacity: 1,
+  });
   const [form, setForm] = useState<BookingFormData>({
     title: "",
     participants: 1,
@@ -193,6 +207,102 @@ export default function Home() {
     }
   };
 
+  const submitRoom = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setRoomFeedback(null);
+    setIsRoomSubmitting(true);
+
+    try {
+      if (editingRoom) {
+        await updateRoom(editingRoom.id, roomForm);
+      } else {
+        await createRoom(roomForm);
+      }
+
+      setRoomFeedback({
+        type: "success",
+        message: editingRoom
+          ? "Sala atualizada com sucesso."
+          : "Sala criada com sucesso.",
+      });
+
+      await load();
+
+      setEditingRoom(null);
+      setRoomForm({
+        name: "",
+        capacity: 1,
+      });
+    } catch (error) {
+      setRoomFeedback({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível salvar a sala.",
+      });
+    } finally {
+      setIsRoomSubmitting(false);
+    }
+  };
+
+  const startEditingRoom = (room: Room) => {
+    setEditingRoom(room);
+    setRoomForm({
+      name: room.name,
+      capacity: room.capacity,
+    });
+    setRoomFeedback(null);
+  };
+
+  const cancelEditingRoom = () => {
+    setEditingRoom(null);
+    setRoomForm({
+      name: "",
+      capacity: 1,
+    });
+    setRoomFeedback(null);
+  };
+
+  const removeRoom = async (room: Room) => {
+    if (!window.confirm(`Deseja excluir a sala \"${room.name}\"?`)) {
+      return;
+    }
+
+    setRoomFeedback(null);
+    setIsRoomSubmitting(true);
+
+    try {
+      await deleteRoom(room.id);
+
+      if (editingRoom?.id === room.id) {
+        cancelEditingRoom();
+      }
+
+      if (roomId === room.id) {
+        setRoomId("");
+      }
+
+      setRoomFeedback({
+        type: "success",
+        message: "Sala excluída com sucesso.",
+      });
+
+      await load();
+    } catch (error) {
+      setRoomFeedback({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível excluir a sala.",
+      });
+    } finally {
+      setIsRoomSubmitting(false);
+    }
+  };
+
   const shown = roomId
     ? bookings.filter((booking) => booking.roomId === roomId)
     : bookings;
@@ -223,6 +333,25 @@ export default function Home() {
             now={now}
             onEdit={startEditing}
             onDelete={removeBooking}
+          />
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[.9fr_1.4fr]">
+          <RoomForm
+            form={roomForm}
+            setForm={setRoomForm}
+            submit={submitRoom}
+            feedback={roomFeedback}
+            isSubmitting={isRoomSubmitting}
+            isEditing={Boolean(editingRoom)}
+            cancelEditing={cancelEditingRoom}
+          />
+
+          <RoomList
+            rooms={rooms}
+            loading={loading}
+            onEdit={startEditingRoom}
+            onDelete={removeRoom}
           />
         </div>
       </section>
