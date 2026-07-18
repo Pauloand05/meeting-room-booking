@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@theme { --color-foreground: #0f172a; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+label { display:block; margin-top: 1rem; font-size:.875rem; font-weight:600; color:#334155; }
+input, select { width:100%; margin-top:.4rem; border:1px solid #cbd5e1; border-radius:.6rem; padding:.65rem .75rem; background:white; font:inherit; }
+button { width:100%; margin-top:1.5rem; border:0; border-radius:.6rem; padding:.8rem; background:#ea580c; color:white; font-weight:700; cursor:pointer; }
+button:disabled { opacity:.5; cursor:not-allowed; }
